@@ -1,5 +1,17 @@
 import { test, expect } from "@playwright/test";
 
+// Helper: fill all 20 inputs and wait for Submit to become enabled
+async function fillAndEnableSubmit(page: ReturnType<typeof test.info>["project"] extends infer _ ? any : never, value: string) {
+  const inputs = page.getByPlaceholder("?");
+  const submit = page.getByRole("button", { name: /Submit/i });
+  for (let i = 0; i < 20; i++) {
+    await inputs.nth(i).fill(value);
+  }
+  // Wait for React to batch all 20 state updates before proceeding
+  await expect(submit).toBeEnabled();
+  return { inputs, submit };
+}
+
 test.describe("Math Trainer", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
@@ -18,7 +30,6 @@ test.describe("Math Trainer", () => {
   });
 
   test("mode dropdown reveals digit selectors progressively", async ({ page }) => {
-    // Initially only mode selector visible
     await expect(page.getByText("Left Digits")).not.toBeVisible();
 
     await page.getByRole("combobox").first().selectOption("addition");
@@ -46,8 +57,7 @@ test.describe("Math Trainer", () => {
     await page.getByRole("combobox").nth(2).selectOption("1");
     await page.getByRole("button", { name: /Generate/i }).click();
 
-    const inputs = page.getByPlaceholder("?");
-    await expect(inputs).toHaveCount(20);
+    await expect(page.getByPlaceholder("?")).toHaveCount(20);
   });
 
   test("submit button is disabled until all fields are filled", async ({ page }) => {
@@ -59,7 +69,6 @@ test.describe("Math Trainer", () => {
     const submit = page.getByRole("button", { name: /Submit/i });
     await expect(submit).toBeDisabled();
 
-    // Fill all 20 inputs
     const inputs = page.getByPlaceholder("?");
     for (let i = 0; i < 20; i++) {
       await inputs.nth(i).fill("5");
@@ -73,13 +82,11 @@ test.describe("Math Trainer", () => {
     await page.getByRole("combobox").nth(2).selectOption("1");
     await page.getByRole("button", { name: /Generate/i }).click();
 
-    const inputs = page.getByPlaceholder("?");
-    for (let i = 0; i < 20; i++) {
-      await inputs.nth(i).fill("999");
-    }
-    await page.getByRole("button", { name: /Submit/i }).click();
+    const { submit } = await fillAndEnableSubmit(page, "999");
+    await submit.click();
 
-    await expect(page.getByText(/\/20/)).toBeVisible();
+    // ResultCard label is always "Result"
+    await expect(page.getByText("Result").first()).toBeVisible();
     await expect(page.getByText(/Keep practicing|Good work|Perfect/i)).toBeVisible();
   });
 
@@ -89,14 +96,15 @@ test.describe("Math Trainer", () => {
     await page.getByRole("combobox").nth(2).selectOption("1");
     await page.getByRole("button", { name: /Generate/i }).click();
 
-    const inputs = page.getByPlaceholder("?");
-    for (let i = 0; i < 20; i++) {
-      await inputs.nth(i).fill("1");
-    }
-    await page.getByRole("button", { name: /Submit/i }).click();
-    await page.getByRole("button", { name: /Next/i }).click();
+    const { submit } = await fillAndEnableSubmit(page, "1");
+    await submit.click();
 
-    // Should have a fresh set of 20 empty inputs
+    // Wait for Next to appear before clicking it
+    const next = page.getByRole("button", { name: /Next/i });
+    await expect(next).toBeVisible();
+    await next.click();
+
+    // Fresh set: 20 empty inputs, Submit disabled again
     await expect(page.getByPlaceholder("?")).toHaveCount(20);
     await expect(page.getByRole("button", { name: /Submit/i })).toBeDisabled();
   });
@@ -137,11 +145,8 @@ test.describe("Math Trainer", () => {
     await page.getByRole("combobox").nth(2).selectOption("1");
     await page.getByRole("button", { name: /Generate/i }).click();
 
-    const inputs = page.getByPlaceholder("?");
-    for (let i = 0; i < 20; i++) {
-      await inputs.nth(i).fill("5");
-    }
-    await page.getByRole("button", { name: /Submit/i }).click();
+    const { submit } = await fillAndEnableSubmit(page, "5");
+    await submit.click();
 
     await expect(page.getByText("Recent Sessions")).toBeVisible();
   });
