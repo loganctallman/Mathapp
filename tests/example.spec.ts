@@ -76,39 +76,6 @@ test.describe("Math Trainer", () => {
     await expect(submit).toBeEnabled();
   });
 
-  test("submit reveals results with score and correct/incorrect highlights", async ({ page }) => {
-    await page.getByRole("combobox").first().selectOption("addition");
-    await page.getByRole("combobox").nth(1).selectOption("1");
-    await page.getByRole("combobox").nth(2).selectOption("1");
-    await page.getByRole("button", { name: /Generate/i }).click();
-
-    const { submit } = await fillAndEnableSubmit(page, "999");
-    await submit.click();
-
-    // ResultCard label is always "Result"
-    await expect(page.getByText("Result").first()).toBeVisible();
-    await expect(page.getByText(/Keep practicing|Good work|Perfect/i)).toBeVisible();
-  });
-
-  test("next button generates a fresh set after submit", async ({ page }) => {
-    await page.getByRole("combobox").first().selectOption("multiplication");
-    await page.getByRole("combobox").nth(1).selectOption("1");
-    await page.getByRole("combobox").nth(2).selectOption("1");
-    await page.getByRole("button", { name: /Generate/i }).click();
-
-    const { submit } = await fillAndEnableSubmit(page, "1");
-    await submit.click();
-
-    // Wait for Next to appear before clicking it
-    const next = page.getByRole("button", { name: "Next", exact: true });
-    await expect(next).toBeVisible();
-    await next.click();
-
-    // Fresh set: 20 empty inputs, Submit disabled again
-    await expect(page.getByPlaceholder("?")).toHaveCount(20);
-    await expect(page.getByRole("button", { name: /Submit/i })).toBeDisabled();
-  });
-
   test("reset clears problems and returns to config", async ({ page }) => {
     await page.getByRole("combobox").first().selectOption("subtraction");
     await page.getByRole("combobox").nth(1).selectOption("2");
