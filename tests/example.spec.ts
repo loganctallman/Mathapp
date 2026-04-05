@@ -100,7 +100,7 @@ test.describe("Math Trainer", () => {
     await submit.click();
 
     // Wait for Next to appear before clicking it
-    const next = page.getByRole("button", { name: /Next/i });
+    const next = page.getByRole("button", { name: "Next", exact: true });
     await expect(next).toBeVisible();
     await next.click();
 
