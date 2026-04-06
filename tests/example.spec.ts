@@ -199,7 +199,7 @@ test.describe("Math Trainer", () => {
     await page.getByRole("button", { name: /Generate/i }).click();
 
     await expect(page.getByPlaceholder("?")).toHaveCount(20);
-    await expect(page.getByText("÷").first()).toBeVisible();
+    await expect(page.locator("span").filter({ hasText: /^÷$/ }).first()).toBeVisible();
   });
 
   test("Generate again replaces the problem set with empty inputs", async ({ page }) => {
