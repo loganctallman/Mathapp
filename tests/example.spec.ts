@@ -117,4 +117,102 @@ test.describe("Math Trainer", () => {
 
     await expect(page.getByText("Recent Sessions")).toBeVisible();
   });
+
+  test("changing mode resets problems and right digit selector", async ({ page }) => {
+    await page.getByRole("combobox").first().selectOption("addition");
+    await page.getByRole("combobox").nth(1).selectOption("1");
+    await page.getByRole("combobox").nth(2).selectOption("1");
+    await page.getByRole("button", { name: /Generate/i }).click();
+    await expect(page.getByPlaceholder("?")).toHaveCount(20);
+
+    await page.getByRole("combobox").first().selectOption("multiplication");
+    await expect(page.getByPlaceholder("?")).toHaveCount(0);
+    await expect(page.getByText("Right Digits")).not.toBeVisible();
+  });
+
+  test("max value slider updates the displayed max number", async ({ page }) => {
+    await page.getByRole("combobox").first().selectOption("addition");
+    await page.getByRole("combobox").nth(1).selectOption("2"); // 2 digits: range 10–99
+
+    const slider = page.locator('input[type="range"]').first();
+    await slider.fill("50");
+    await expect(page.getByText("50")).toBeVisible();
+  });
+
+  test("Enter key advances focus to the next input", async ({ page }) => {
+    await page.getByRole("combobox").first().selectOption("addition");
+    await page.getByRole("combobox").nth(1).selectOption("1");
+    await page.getByRole("combobox").nth(2).selectOption("1");
+    await page.getByRole("button", { name: /Generate/i }).click();
+
+    const inputs = page.getByPlaceholder("?");
+    await inputs.nth(0).fill("5");
+    await inputs.nth(0).press("Enter");
+    await expect(inputs.nth(1)).toBeFocused();
+  });
+
+  test("score history persists after page reload", async ({ page }) => {
+    await page.getByRole("combobox").first().selectOption("addition");
+    await page.getByRole("combobox").nth(1).selectOption("1");
+    await page.getByRole("combobox").nth(2).selectOption("1");
+    await page.getByRole("button", { name: /Generate/i }).click();
+
+    const { submit } = await fillAndEnableSubmit(page, "5");
+    await submit.click();
+    await expect(page.getByText("Recent Sessions")).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByText("Recent Sessions")).toBeVisible();
+  });
+
+  test("clear button removes score history", async ({ page }) => {
+    await page.getByRole("combobox").first().selectOption("addition");
+    await page.getByRole("combobox").nth(1).selectOption("1");
+    await page.getByRole("combobox").nth(2).selectOption("1");
+    await page.getByRole("button", { name: /Generate/i }).click();
+
+    const { submit } = await fillAndEnableSubmit(page, "5");
+    await submit.click();
+    await expect(page.getByText("Recent Sessions")).toBeVisible();
+
+    await page.getByRole("button", { name: "Clear", exact: true }).click();
+    await expect(page.getByText("Recent Sessions")).not.toBeVisible();
+  });
+
+  test("submit stays disabled with 19 of 20 fields filled", async ({ page }) => {
+    await page.getByRole("combobox").first().selectOption("addition");
+    await page.getByRole("combobox").nth(1).selectOption("1");
+    await page.getByRole("combobox").nth(2).selectOption("1");
+    await page.getByRole("button", { name: /Generate/i }).click();
+
+    const inputs = page.getByPlaceholder("?");
+    for (let i = 0; i < 19; i++) {
+      await inputs.nth(i).fill("5");
+    }
+    await expect(page.getByRole("button", { name: /Submit/i })).toBeDisabled();
+  });
+
+  test("division mode generates 20 problems with ÷ operator", async ({ page }) => {
+    await page.getByRole("combobox").first().selectOption("division");
+    await page.getByRole("combobox").nth(1).selectOption("1");
+    await page.getByRole("combobox").nth(2).selectOption("1");
+    await page.getByRole("button", { name: /Generate/i }).click();
+
+    await expect(page.getByPlaceholder("?")).toHaveCount(20);
+    await expect(page.getByText("÷").first()).toBeVisible();
+  });
+
+  test("Generate again replaces the problem set with empty inputs", async ({ page }) => {
+    await page.getByRole("combobox").first().selectOption("multiplication");
+    await page.getByRole("combobox").nth(1).selectOption("1");
+    await page.getByRole("combobox").nth(2).selectOption("1");
+    await page.getByRole("button", { name: /Generate/i }).click();
+
+    // Dirty one input then regenerate
+    await page.getByPlaceholder("?").first().fill("42");
+    await page.getByRole("button", { name: /Generate/i }).click();
+
+    await expect(page.getByPlaceholder("?")).toHaveCount(20);
+    await expect(page.getByPlaceholder("?").first()).toHaveValue("");
+  });
 });
