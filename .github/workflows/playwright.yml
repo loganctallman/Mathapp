@@ -8,7 +8,28 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  unit-test:
+    name: Unit Tests (Vitest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm test
+
+  e2e:
     name: Playwright Tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -45,7 +66,7 @@ jobs:
 
   deploy:
     name: Deploy to Vercel
-    needs: test
+    needs: [unit-test, e2e]
     runs-on: ubuntu-latest
     # Only deploy on pushes (not PRs from forks), but allow preview deploys on PRs from the same repo
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
