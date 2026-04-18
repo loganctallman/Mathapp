@@ -1,5 +1,6 @@
 "use client";
 
+import * as Select from "@radix-ui/react-select";
 import { Mode, digitMin, digitMax } from "@/utils/mathLogic";
 
 interface Props {
@@ -37,6 +38,76 @@ function sliderTrackStyle(value: number, min: number, max: number): React.CSSPro
   };
 }
 
+interface GlassSelectProps {
+  value: string;
+  onValueChange: (v: string) => void;
+  placeholder: string;
+  items: { value: string; label: string }[];
+}
+
+function GlassSelect({ value, onValueChange, placeholder, items }: GlassSelectProps) {
+  return (
+    <Select.Root value={value || undefined} onValueChange={onValueChange}>
+      <Select.Trigger
+        className={
+          "w-full glass-sm rounded-xl px-4 py-3 text-white font-semibold text-sm " +
+          "focus:outline-none focus:ring-2 focus:ring-slate-400/50 " +
+          "cursor-pointer transition-all duration-200 hover:brightness-125 " +
+          "flex items-center justify-between gap-2 " +
+          "data-[placeholder]:text-white/40"
+        }
+      >
+        <Select.Value placeholder={placeholder} />
+        <Select.Icon className="text-white/50 shrink-0">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </Select.Icon>
+      </Select.Trigger>
+
+      <Select.Portal>
+        <Select.Content
+          position="popper"
+          sideOffset={6}
+          className={
+            "z-50 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-xl " +
+            "border border-white/10 " +
+            "bg-[#111114]/95 backdrop-blur-2xl " +
+            "shadow-[0_8px_40px_rgba(0,0,0,0.6)] " +
+            "animate-in fade-in-0 zoom-in-95 " +
+            "data-[side=bottom]:slide-in-from-top-2"
+          }
+        >
+          <Select.Viewport className="p-1.5">
+            {items.map((item) => (
+              <Select.Item
+                key={item.value}
+                value={item.value}
+                className={
+                  "relative flex items-center justify-between gap-4 " +
+                  "px-3 py-2.5 rounded-lg " +
+                  "text-white/80 font-semibold text-sm " +
+                  "cursor-pointer select-none outline-none " +
+                  "transition-colors duration-100 " +
+                  "data-[highlighted]:bg-white/10 data-[highlighted]:text-white " +
+                  "data-[state=checked]:text-white"
+                }
+              >
+                <Select.ItemText>{item.label}</Select.ItemText>
+                <Select.ItemIndicator>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </Select.ItemIndicator>
+              </Select.Item>
+            ))}
+          </Select.Viewport>
+        </Select.Content>
+      </Select.Portal>
+    </Select.Root>
+  );
+}
+
 export default function SelectionMenu({
   mode,
   leftDigits,
@@ -52,11 +123,6 @@ export default function SelectionMenu({
 }: Props) {
   const canGenerate = mode !== "" && leftDigits !== "" && rightDigits !== "";
 
-  const selectClass =
-    "w-full appearance-none glass-sm rounded-xl px-4 py-3 text-white font-semibold text-sm " +
-    "focus:outline-none focus:ring-2 focus:ring-slate-400/50 " +
-    "cursor-pointer transition-all duration-200 hover:brightness-125";
-
   return (
     <div className="glass rounded-2xl p-6">
       <h2 className="text-white/90 text-xs font-bold uppercase tracking-[0.2em] mb-5">
@@ -69,16 +135,12 @@ export default function SelectionMenu({
           <label className="text-white/40 text-xs font-semibold uppercase tracking-widest">
             Mode
           </label>
-          <select
+          <GlassSelect
             value={mode}
-            onChange={(e) => onModeChange(e.target.value as Mode)}
-            className={selectClass}
-          >
-            <option value="" disabled>Select mode…</option>
-            {MODES.map((m) => (
-              <option key={m.value} value={m.value}>{m.label}</option>
-            ))}
-          </select>
+            onValueChange={(v) => onModeChange(v as Mode)}
+            placeholder="Select mode…"
+            items={MODES.map((m) => ({ value: m.value, label: m.label }))}
+          />
         </div>
 
         {/* Left Digits + Max slider */}
@@ -87,16 +149,12 @@ export default function SelectionMenu({
             <label className="text-white/40 text-xs font-semibold uppercase tracking-widest">
               {mode === "division" ? "Divisor Digits" : "Left Digits"}
             </label>
-            <select
-              value={leftDigits}
-              onChange={(e) => onLeftDigitsChange(Number(e.target.value))}
-              className={selectClass}
-            >
-              <option value="" disabled>Select digits…</option>
-              {DIGITS.map((d) => (
-                <option key={d} value={d}>{d} digit{d > 1 ? "s" : ""}</option>
-              ))}
-            </select>
+            <GlassSelect
+              value={leftDigits === "" ? "" : String(leftDigits)}
+              onValueChange={(v) => onLeftDigitsChange(Number(v))}
+              placeholder="Select digits…"
+              items={DIGITS.map((d) => ({ value: String(d), label: `${d} digit${d > 1 ? "s" : ""}` }))}
+            />
 
             {leftDigits !== "" && (
               <div className="pt-1">
@@ -135,16 +193,12 @@ export default function SelectionMenu({
             <label className="text-white/40 text-xs font-semibold uppercase tracking-widest">
               {mode === "division" ? "Quotient Digits" : "Right Digits"}
             </label>
-            <select
-              value={rightDigits}
-              onChange={(e) => onRightDigitsChange(Number(e.target.value))}
-              className={selectClass}
-            >
-              <option value="" disabled>Select digits…</option>
-              {DIGITS.map((d) => (
-                <option key={d} value={d}>{d} digit{d > 1 ? "s" : ""}</option>
-              ))}
-            </select>
+            <GlassSelect
+              value={rightDigits === "" ? "" : String(rightDigits)}
+              onValueChange={(v) => onRightDigitsChange(Number(v))}
+              placeholder="Select digits…"
+              items={DIGITS.map((d) => ({ value: String(d), label: `${d} digit${d > 1 ? "s" : ""}` }))}
+            />
 
             {rightDigits !== "" && (
               <div className="pt-1">

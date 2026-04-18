@@ -1,5 +1,24 @@
 import { test, expect } from "@playwright/test";
 
+// Radix Select doesn't use native <select>, so .selectOption() won't work.
+// Click the trigger to open the listbox, then click the matching option.
+const VALUE_TO_LABEL: Record<string, RegExp> = {
+  addition:       /addition/i,
+  subtraction:    /subtraction/i,
+  multiplication: /multiplication/i,
+  division:       /division/i,
+  "1": /^1 digit/,
+  "2": /^2 digit/,
+  "3": /^3 digit/,
+  "4": /^4 digit/,
+};
+
+async function selectRadixOption(page: any, nthCombobox: number, value: string) {
+  await page.getByRole("combobox").nth(nthCombobox).click();
+  const label = VALUE_TO_LABEL[value] ?? new RegExp(value, "i");
+  await page.getByRole("option", { name: label }).click();
+}
+
 // Helper: fill all 20 inputs and wait for Submit to become enabled
 async function fillAndEnableSubmit(page: ReturnType<typeof test.info>["project"] extends infer _ ? any : never, value: string) {
   const inputs = page.getByPlaceholder("?");
@@ -32,38 +51,38 @@ test.describe("Math Trainer", () => {
   test("mode dropdown reveals digit selectors progressively", async ({ page }) => {
     await expect(page.getByText("Left Digits")).not.toBeVisible();
 
-    await page.getByRole("combobox").first().selectOption("addition");
+    await selectRadixOption(page, 0, "addition");
     await expect(page.getByText("Left Digits")).toBeVisible();
     await expect(page.getByText("Right Digits")).not.toBeVisible();
 
-    await page.getByRole("combobox").nth(1).selectOption("2");
+    await selectRadixOption(page, 1, "2");
     await expect(page.getByText("Right Digits")).toBeVisible();
   });
 
   test("generate button appears only when all three dropdowns are filled", async ({ page }) => {
     await expect(page.getByRole("button", { name: /Generate/i })).not.toBeVisible();
 
-    await page.getByRole("combobox").first().selectOption("addition");
-    await page.getByRole("combobox").nth(1).selectOption("1");
+    await selectRadixOption(page, 0, "addition");
+    await selectRadixOption(page, 1, "1");
     await expect(page.getByRole("button", { name: /Generate/i })).not.toBeVisible();
 
-    await page.getByRole("combobox").nth(2).selectOption("1");
+    await selectRadixOption(page, 2, "1");
     await expect(page.getByRole("button", { name: /Generate/i })).toBeVisible();
   });
 
   test("generates 20 problems on click", async ({ page }) => {
-    await page.getByRole("combobox").first().selectOption("addition");
-    await page.getByRole("combobox").nth(1).selectOption("1");
-    await page.getByRole("combobox").nth(2).selectOption("1");
+    await selectRadixOption(page, 0, "addition");
+    await selectRadixOption(page, 1, "1");
+    await selectRadixOption(page, 2, "1");
     await page.getByRole("button", { name: /Generate/i }).click();
 
     await expect(page.getByPlaceholder("?")).toHaveCount(20);
   });
 
   test("submit button is disabled until all fields are filled", async ({ page }) => {
-    await page.getByRole("combobox").first().selectOption("addition");
-    await page.getByRole("combobox").nth(1).selectOption("1");
-    await page.getByRole("combobox").nth(2).selectOption("1");
+    await selectRadixOption(page, 0, "addition");
+    await selectRadixOption(page, 1, "1");
+    await selectRadixOption(page, 2, "1");
     await page.getByRole("button", { name: /Generate/i }).click();
 
     const submit = page.getByRole("button", { name: /Submit/i });
@@ -77,9 +96,9 @@ test.describe("Math Trainer", () => {
   });
 
   test("reset clears problems and returns to config", async ({ page }) => {
-    await page.getByRole("combobox").first().selectOption("subtraction");
-    await page.getByRole("combobox").nth(1).selectOption("2");
-    await page.getByRole("combobox").nth(2).selectOption("1");
+    await selectRadixOption(page, 0, "subtraction");
+    await selectRadixOption(page, 1, "2");
+    await selectRadixOption(page, 2, "1");
     await page.getByRole("button", { name: /Generate/i }).click();
     await expect(page.getByPlaceholder("?")).toHaveCount(20);
 
@@ -88,28 +107,28 @@ test.describe("Math Trainer", () => {
   });
 
   test("max value sliders appear after digit selection", async ({ page }) => {
-    await page.getByRole("combobox").first().selectOption("addition");
-    await page.getByRole("combobox").nth(1).selectOption("2");
+    await selectRadixOption(page, 0, "addition");
+    await selectRadixOption(page, 1, "2");
 
     const sliders = page.locator('input[type="range"]');
     await expect(sliders).toHaveCount(1);
 
-    await page.getByRole("combobox").nth(2).selectOption("2");
+    await selectRadixOption(page, 2, "2");
     await expect(sliders).toHaveCount(2);
   });
 
   test("division mode labels show Divisor and Quotient", async ({ page }) => {
-    await page.getByRole("combobox").first().selectOption("division");
+    await selectRadixOption(page, 0, "division");
     await expect(page.getByText("Divisor Digits")).toBeVisible();
 
-    await page.getByRole("combobox").nth(1).selectOption("1");
+    await selectRadixOption(page, 1, "1");
     await expect(page.getByText("Quotient Digits")).toBeVisible();
   });
 
   test("score history appears after first submission", async ({ page }) => {
-    await page.getByRole("combobox").first().selectOption("addition");
-    await page.getByRole("combobox").nth(1).selectOption("1");
-    await page.getByRole("combobox").nth(2).selectOption("1");
+    await selectRadixOption(page, 0, "addition");
+    await selectRadixOption(page, 1, "1");
+    await selectRadixOption(page, 2, "1");
     await page.getByRole("button", { name: /Generate/i }).click();
 
     const { submit } = await fillAndEnableSubmit(page, "5");
@@ -119,20 +138,20 @@ test.describe("Math Trainer", () => {
   });
 
   test("changing mode resets problems and right digit selector", async ({ page }) => {
-    await page.getByRole("combobox").first().selectOption("addition");
-    await page.getByRole("combobox").nth(1).selectOption("1");
-    await page.getByRole("combobox").nth(2).selectOption("1");
+    await selectRadixOption(page, 0, "addition");
+    await selectRadixOption(page, 1, "1");
+    await selectRadixOption(page, 2, "1");
     await page.getByRole("button", { name: /Generate/i }).click();
     await expect(page.getByPlaceholder("?")).toHaveCount(20);
 
-    await page.getByRole("combobox").first().selectOption("multiplication");
+    await selectRadixOption(page, 0, "multiplication");
     await expect(page.getByPlaceholder("?")).toHaveCount(0);
     await expect(page.getByText("Right Digits")).not.toBeVisible();
   });
 
   test("max value slider updates the displayed max number", async ({ page }) => {
-    await page.getByRole("combobox").first().selectOption("addition");
-    await page.getByRole("combobox").nth(1).selectOption("2"); // 2 digits: range 10–99
+    await selectRadixOption(page, 0, "addition");
+    await selectRadixOption(page, 1, "2"); // 2 digits: range 10–99
 
     const slider = page.locator('input[type="range"]').first();
     await slider.fill("50");
@@ -140,9 +159,9 @@ test.describe("Math Trainer", () => {
   });
 
   test("Enter key advances focus to the next input", async ({ page }) => {
-    await page.getByRole("combobox").first().selectOption("addition");
-    await page.getByRole("combobox").nth(1).selectOption("1");
-    await page.getByRole("combobox").nth(2).selectOption("1");
+    await selectRadixOption(page, 0, "addition");
+    await selectRadixOption(page, 1, "1");
+    await selectRadixOption(page, 2, "1");
     await page.getByRole("button", { name: /Generate/i }).click();
 
     const inputs = page.getByPlaceholder("?");
@@ -152,9 +171,9 @@ test.describe("Math Trainer", () => {
   });
 
   test("score history persists after page reload", async ({ page }) => {
-    await page.getByRole("combobox").first().selectOption("addition");
-    await page.getByRole("combobox").nth(1).selectOption("1");
-    await page.getByRole("combobox").nth(2).selectOption("1");
+    await selectRadixOption(page, 0, "addition");
+    await selectRadixOption(page, 1, "1");
+    await selectRadixOption(page, 2, "1");
     await page.getByRole("button", { name: /Generate/i }).click();
 
     const { submit } = await fillAndEnableSubmit(page, "5");
@@ -166,9 +185,9 @@ test.describe("Math Trainer", () => {
   });
 
   test("clear button removes score history", async ({ page }) => {
-    await page.getByRole("combobox").first().selectOption("addition");
-    await page.getByRole("combobox").nth(1).selectOption("1");
-    await page.getByRole("combobox").nth(2).selectOption("1");
+    await selectRadixOption(page, 0, "addition");
+    await selectRadixOption(page, 1, "1");
+    await selectRadixOption(page, 2, "1");
     await page.getByRole("button", { name: /Generate/i }).click();
 
     const { submit } = await fillAndEnableSubmit(page, "5");
@@ -180,9 +199,9 @@ test.describe("Math Trainer", () => {
   });
 
   test("submit stays disabled with 19 of 20 fields filled", async ({ page }) => {
-    await page.getByRole("combobox").first().selectOption("addition");
-    await page.getByRole("combobox").nth(1).selectOption("1");
-    await page.getByRole("combobox").nth(2).selectOption("1");
+    await selectRadixOption(page, 0, "addition");
+    await selectRadixOption(page, 1, "1");
+    await selectRadixOption(page, 2, "1");
     await page.getByRole("button", { name: /Generate/i }).click();
 
     const inputs = page.getByPlaceholder("?");
@@ -193,9 +212,9 @@ test.describe("Math Trainer", () => {
   });
 
   test("division mode generates 20 problems with ÷ operator", async ({ page }) => {
-    await page.getByRole("combobox").first().selectOption("division");
-    await page.getByRole("combobox").nth(1).selectOption("1");
-    await page.getByRole("combobox").nth(2).selectOption("1");
+    await selectRadixOption(page, 0, "division");
+    await selectRadixOption(page, 1, "1");
+    await selectRadixOption(page, 2, "1");
     await page.getByRole("button", { name: /Generate/i }).click();
 
     await expect(page.getByPlaceholder("?")).toHaveCount(20);
@@ -203,9 +222,9 @@ test.describe("Math Trainer", () => {
   });
 
   test("Generate again replaces the problem set with empty inputs", async ({ page }) => {
-    await page.getByRole("combobox").first().selectOption("multiplication");
-    await page.getByRole("combobox").nth(1).selectOption("1");
-    await page.getByRole("combobox").nth(2).selectOption("1");
+    await selectRadixOption(page, 0, "multiplication");
+    await selectRadixOption(page, 1, "1");
+    await selectRadixOption(page, 2, "1");
     await page.getByRole("button", { name: /Generate/i }).click();
 
     // Dirty one input then regenerate

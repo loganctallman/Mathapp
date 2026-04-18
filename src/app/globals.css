@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
 /* Remove number input spinners */
@@ -85,11 +85,6 @@ input[type="number"] {
     0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
-/* Select option dark background (browser-native) */
-select option {
-  background-color: #130925;
-  color: white;
-}
 
 /* Range slider */
 input[type="range"] {
