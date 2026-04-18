@@ -47,7 +47,7 @@ interface GlassSelectProps {
 
 function GlassSelect({ value, onValueChange, placeholder, items }: GlassSelectProps) {
   return (
-    <Select.Root value={value || undefined} onValueChange={onValueChange}>
+    <Select.Root value={value} onValueChange={onValueChange}>
       <Select.Trigger
         className={
           "w-full glass-sm rounded-xl px-4 py-3 text-white font-semibold text-sm " +
