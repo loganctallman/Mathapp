@@ -140,7 +140,7 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center gap-4 mt-2">
-              <p className="text-white/40 text-sm font-semibold uppercase tracking-[0.2em]">
+              <p className="text-white/70 text-sm font-semibold uppercase tracking-[0.2em]">
                 Simple · Fast · No excuses
               </p>
               <InstallPrompt />
