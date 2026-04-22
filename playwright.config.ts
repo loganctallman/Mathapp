@@ -3,6 +3,8 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests",
   snapshotDir: "./tests/__snapshots__",
+  // In CI the visual job runs separately; skip visual.spec.ts in the main e2e job.
+  testIgnore: process.env.PLAYWRIGHT_SKIP_VISUAL ? ["**/visual.spec.ts"] : [],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

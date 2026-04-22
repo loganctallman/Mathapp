@@ -12,7 +12,9 @@ module.exports = {
       numberOfRuns: 3,
       settings: {
         // Required when Chrome runs as root inside a container.
-        chromeFlags: "--no-sandbox --disable-dev-shm-usage",
+        // --disable-gpu and --disable-setuid-sandbox prevent DevTools protocol
+        // timeout (Page.captureScreenshot) seen on GitHub-hosted runners.
+        chromeFlags: "--no-sandbox --disable-dev-shm-usage --disable-gpu --disable-setuid-sandbox",
       },
     },
 
