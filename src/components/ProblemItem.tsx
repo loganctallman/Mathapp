@@ -40,7 +40,7 @@ export default function ProblemItem({
   }, [submitted, isWrong]);
 
   const cardClass = [
-    "glass-sm rounded-xl px-4 py-3 flex items-center gap-2 font-mono",
+    "glass-sm rounded-xl px-4 py-3 min-h-[44px] flex items-center gap-2 font-mono",
     "transition-all duration-200",
     !submitted && "hover:scale-[1.02] hover:-translate-y-0.5 hover:brightness-125",
     isCorrect && "glow-green",

@@ -43,12 +43,14 @@ interface GlassSelectProps {
   onValueChange: (v: string) => void;
   placeholder: string;
   items: { value: string; label: string }[];
+  "aria-label": string;
 }
 
-function GlassSelect({ value, onValueChange, placeholder, items }: GlassSelectProps) {
+function GlassSelect({ value, onValueChange, placeholder, items, "aria-label": ariaLabel }: GlassSelectProps) {
   return (
     <Select.Root value={value} onValueChange={onValueChange}>
       <Select.Trigger
+        aria-label={ariaLabel}
         className={
           "w-full glass-sm rounded-xl px-4 py-3 text-white font-semibold text-sm " +
           "focus:outline-none focus:ring-2 focus:ring-slate-400/50 " +
@@ -139,6 +141,7 @@ export default function SelectionMenu({
             value={mode}
             onValueChange={(v) => onModeChange(v as Mode)}
             placeholder="Select mode…"
+            aria-label="Operation mode"
             items={MODES.map((m) => ({ value: m.value, label: m.label }))}
           />
         </div>
@@ -153,6 +156,7 @@ export default function SelectionMenu({
               value={leftDigits === "" ? "" : String(leftDigits)}
               onValueChange={(v) => onLeftDigitsChange(Number(v))}
               placeholder="Select digits…"
+              aria-label={mode === "division" ? "Divisor digit count" : "Left operand digit count"}
               items={DIGITS.map((d) => ({ value: String(d), label: `${d} digit${d > 1 ? "s" : ""}` }))}
             />
 
@@ -168,6 +172,7 @@ export default function SelectionMenu({
                 </div>
                 <input
                   type="range"
+                  aria-label={`${mode === "division" ? "Divisor" : "Left operand"} max value`}
                   min={digitMin(leftDigits)}
                   max={digitMax(leftDigits)}
                   value={leftMax}
@@ -197,6 +202,7 @@ export default function SelectionMenu({
               value={rightDigits === "" ? "" : String(rightDigits)}
               onValueChange={(v) => onRightDigitsChange(Number(v))}
               placeholder="Select digits…"
+              aria-label={mode === "division" ? "Quotient digit count" : "Right operand digit count"}
               items={DIGITS.map((d) => ({ value: String(d), label: `${d} digit${d > 1 ? "s" : ""}` }))}
             />
 
@@ -212,6 +218,7 @@ export default function SelectionMenu({
                 </div>
                 <input
                   type="range"
+                  aria-label={`${mode === "division" ? "Quotient" : "Right operand"} max value`}
                   min={digitMin(rightDigits)}
                   max={digitMax(rightDigits)}
                   value={rightMax}

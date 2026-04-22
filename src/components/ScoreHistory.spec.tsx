@@ -2,22 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ScoreHistory from "./ScoreHistory";
-import type { HistoryEntry } from "@/hooks/useScoreHistory";
-
-let idCounter = 0;
-function makeEntry(overrides: Partial<HistoryEntry> = {}): HistoryEntry {
-  return {
-    id: String(idCounter++),
-    date: Date.now(),
-    mode: "addition",
-    leftDigits: 1,
-    rightDigits: 1,
-    score: 18,
-    total: 20,
-    timeMs: 45000,
-    ...overrides,
-  };
-}
+import { makeHistoryEntry } from "@/test/factories";
 
 describe("ScoreHistory", () => {
   it("renders nothing when history is empty", () => {
@@ -28,7 +13,7 @@ describe("ScoreHistory", () => {
   });
 
   it('shows "Recent Sessions" heading when history is non-empty', () => {
-    render(<ScoreHistory history={[makeEntry()]} onClear={vi.fn()} />);
+    render(<ScoreHistory history={[makeHistoryEntry()]} onClear={vi.fn()} />);
     expect(screen.getByText("Recent Sessions")).toBeInTheDocument();
   });
 
@@ -36,8 +21,8 @@ describe("ScoreHistory", () => {
     render(
       <ScoreHistory
         history={[
-          makeEntry({ mode: "multiplication" }),
-          makeEntry({ mode: "division" }),
+          makeHistoryEntry({ mode: "multiplication" }),
+          makeHistoryEntry({ mode: "division" }),
         ]}
         onClear={vi.fn()}
       />
@@ -49,7 +34,7 @@ describe("ScoreHistory", () => {
   it("applies yellow colour for a perfect score", () => {
     render(
       <ScoreHistory
-        history={[makeEntry({ score: 20, total: 20 })]}
+        history={[makeHistoryEntry({ score: 20, total: 20 })]}
         onClear={vi.fn()}
       />
     );
@@ -59,7 +44,7 @@ describe("ScoreHistory", () => {
   it("applies green colour for a passing score (≥ 70 %)", () => {
     render(
       <ScoreHistory
-        history={[makeEntry({ score: 14, total: 20 })]}
+        history={[makeHistoryEntry({ score: 14, total: 20 })]}
         onClear={vi.fn()}
       />
     );
@@ -69,7 +54,7 @@ describe("ScoreHistory", () => {
   it("applies red colour for a failing score (< 70 %)", () => {
     render(
       <ScoreHistory
-        history={[makeEntry({ score: 10, total: 20 })]}
+        history={[makeHistoryEntry({ score: 10, total: 20 })]}
         onClear={vi.fn()}
       />
     );
@@ -79,7 +64,7 @@ describe("ScoreHistory", () => {
   it('shows "Today" for entries timestamped today', () => {
     render(
       <ScoreHistory
-        history={[makeEntry({ date: Date.now() })]}
+        history={[makeHistoryEntry({ date: Date.now() })]}
         onClear={vi.fn()}
       />
     );
@@ -89,7 +74,7 @@ describe("ScoreHistory", () => {
   it("calls onClear when the Clear button is clicked", async () => {
     const onClear = vi.fn();
     const user = userEvent.setup();
-    render(<ScoreHistory history={[makeEntry()]} onClear={onClear} />);
+    render(<ScoreHistory history={[makeHistoryEntry()]} onClear={onClear} />);
     await user.click(screen.getByRole("button", { name: /clear/i }));
     expect(onClear).toHaveBeenCalledOnce();
   });

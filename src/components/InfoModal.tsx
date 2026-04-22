@@ -41,8 +41,13 @@ export default function InfoModal() {
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
 
           {/* Modal card */}
-          <div className="relative glass rounded-2xl p-8 max-w-lg w-full shadow-[0_24px_64px_rgba(0,0,0,0.6)]
-            animate-fade-up">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="info-modal-title"
+            className="relative glass rounded-2xl p-8 max-w-lg w-full shadow-[0_24px_64px_rgba(0,0,0,0.6)]
+            animate-fade-up"
+          >
             {/* Close button */}
             <button
               onClick={() => setOpen(false)}
@@ -58,9 +63,9 @@ export default function InfoModal() {
               </svg>
             </button>
 
-            <h3 className="gradient-text text-xl font-black uppercase tracking-tight mb-4">
+            <h2 id="info-modal-title" className="gradient-text text-xl font-black uppercase tracking-tight mb-4">
               Math Trainer
-            </h3>
+            </h2>
             <p className="text-white/60 text-sm leading-relaxed font-medium">
               Master your mental math with a trainer that adapts to you. Whether you&apos;re a student
               sharpening your skills or an adult staying sharp, Math Trainer lets you dictate the

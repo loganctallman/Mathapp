@@ -2,9 +2,9 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ProblemItem from "./ProblemItem";
-import type { Problem } from "@/utils/mathLogic";
+import { makeProblem } from "@/test/factories";
 
-const PROBLEM: Problem = { id: 0, left: 12, right: 5, operator: "+", answer: 17 };
+const PROBLEM = makeProblem({ left: 12, right: 5, answer: 17 });
 
 const DEFAULTS = {
   problem: PROBLEM,

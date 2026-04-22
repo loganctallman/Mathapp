@@ -2,16 +2,12 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ProblemList from "./ProblemList";
-import type { Problem } from "@/utils/mathLogic";
+import { makeProblem } from "@/test/factories";
 
 // 3 simple addition problems: 1+1=2, 2+1=3, 3+1=4
-const PROBLEMS: Problem[] = Array.from({ length: 3 }, (_, i) => ({
-  id: i,
-  left: i + 1,
-  right: 1,
-  operator: "+",
-  answer: i + 2,
-}));
+const PROBLEMS = Array.from({ length: 3 }, (_, i) =>
+  makeProblem({ id: i, left: i + 1, right: 1, answer: i + 2 })
+);
 
 const CORRECT_ANSWERS = ["2", "3", "4"];
 
